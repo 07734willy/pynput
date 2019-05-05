@@ -202,13 +202,14 @@ class AbstractListener(threading.Thread):
         if f is None:
             return lambda *a: None
         else:
-            argspec = inspect.getargspec(f)
-            actual = len(argspec.args)
-            defaults = len(argspec.defaults) if argspec.defaults else 0
-            if actual - defaults > args:
-                print(actual, defaults, args)
+            varargs = inspect.getargspec(f).varargs
+            parameters = inspect.signature(f).parameters.values()
+            actual = len(parameters)
+            non_default = sum(1 for param in parameters if param.default == inspect.Parameter.empty)
+            if non_default > args:
+                print(non_default, args)
                 raise ValueError(f)
-            elif actual >= args or argspec.varargs is not None:
+            elif actual >= args or varargs is not None:
                 return f
             else:
                 return lambda *a: f(a[:actual])
